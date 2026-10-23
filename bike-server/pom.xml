@@ -26,6 +26,12 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <!-- 参数校验（@Valid / @NotBlank） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
         <!-- JWT令牌生成解析 -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

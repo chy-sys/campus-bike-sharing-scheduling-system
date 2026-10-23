@@ -25,12 +25,16 @@ bike-scheduling-parent/
 ├── bike-server/            # 后端单体应用（端口 8001）
 │   └── src/main/java/com/gxu/bike/
 │       ├── BikeApplication.java       # 启动类
-│       ├── config/SecurityConfig.java
-│       ├── controller/                # Auth / Health / TestDb / Station
-│       ├── dto/                       # LoginRequest / LoginResponse / RegisterRequest
-│       ├── entity/                    # User / Bike / Station
-│       ├── mapper/                    # UserMapper / StationMapper
-│       ├── service/                   # UserService + 实现
+│       ├── common/                    # R 统一返回体 / ResultCode 状态码
+│       ├── config/                    # SecurityConfig / MybatisPlusConfig
+│       ├── controller/                # Auth / Bike / Station / Dispatch / Health / TestDb
+│       ├── dto/                       # 登录注册 / 调度建议
+│       ├── entity/                    # User / Bike / Station / DispatchTask
+│       ├── exception/                 # BizException 业务异常
+│       ├── handler/                   # 全局异常处理 / Security 401·403 JSON 化
+│       ├── mapper/                    # User / Bike / Station / DispatchTask
+│       ├── security/                  # JwtAuthenticationFilter
+│       ├── service/                   # User / Bike / Station / Dispatch + 实现
 │       └── utils/JwtUtil.java
 └── bike-android-app/       # Android 客户端
 ```
@@ -77,6 +81,19 @@ CREATE TABLE bike (
   create_time DATETIME,
   update_time DATETIME
 );
+
+CREATE TABLE dispatch_task (
+  id              BIGINT PRIMARY KEY AUTO_INCREMENT,
+  from_station_id BIGINT NOT NULL,
+  to_station_id   BIGINT NOT NULL,
+  bike_count      INT NOT NULL,
+  status          INT DEFAULT 0 COMMENT '0待调度 1进行中 2已完成 3已取消',
+  operator_id     BIGINT,
+  remark          VARCHAR(200),
+  create_time     DATETIME,
+  update_time     DATETIME,
+  finish_time     DATETIME
+);
 ```
 
 ### 2. 修改数据库连接
@@ -120,13 +137,76 @@ private static final String BASE_URL = "http://192.168.1.37:8001";
 
 ## 接口列表
 
+除 `/auth/**`、`/health`、`/test/**` 外，其余接口需在请求头携带 `Authorization: Bearer {token}`。
+
+### 认证
+
 | 方法 | 路径 | 说明 | 鉴权 |
 | --- | --- | --- | --- |
 | POST | `/auth/register` | 用户注册（开发阶段验证码固定 `123456`） | 否 |
 | POST | `/auth/login` | 用户登录，返回 JWT | 否 |
-| GET | `/health` | 健康检查 | 否 |
-| GET | `/test/users` | 查询全部用户（调试用） | 否 |
-| GET | `/test/stations` | 查询全部站点 | 否 |
+
+### 车辆管理
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/bikes` | 分页查询，支持 `pageNum` `pageSize` `stationId` `status` `keyword` |
+| GET | `/api/bikes/{id}` | 车辆详情 |
+| POST | `/api/bikes` | 新增车辆 |
+| PUT | `/api/bikes` | 修改车辆 |
+| DELETE | `/api/bikes/{id}` | 删除车辆 |
+| PUT | `/api/bikes/{id}/status?status=1` | 修改车辆状态（0故障 1可用 2使用中 3维修中） |
+
+### 站点管理
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/stations` | 分页查询，支持 `keyword` |
+| GET | `/api/stations/all` | 全部站点（下拉选择用） |
+| GET | `/api/stations/{id}` | 站点详情 |
+| POST | `/api/stations` | 新增站点 |
+| PUT | `/api/stations` | 修改站点 |
+| DELETE | `/api/stations/{id}` | 删除站点 |
+
+### 调度管理
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/dispatch/suggest` | **调度建议**：按站点负荷率自动生成调出/调入方案 |
+| GET | `/api/dispatch/tasks` | 分页查询调度任务，支持 `status` 过滤 |
+| GET | `/api/dispatch/tasks/{id}` | 任务详情 |
+| POST | `/api/dispatch/tasks` | 创建调度任务 |
+| PUT | `/api/dispatch/tasks/{id}/start` | 开始调度 |
+| PUT | `/api/dispatch/tasks/{id}/finish` | 完成调度（同步更新两端站点车辆数） |
+| PUT | `/api/dispatch/tasks/{id}/cancel` | 取消调度 |
+
+### 调试接口（无需鉴权）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/health` | 健康检查 |
+| GET | `/test/users` | 查询全部用户 |
+| GET | `/test/stations` | 查询全部站点 |
+
+调度建议返回示例：
+
+```json
+{
+  "code": 200,
+  "msg": "操作成功",
+  "data": [
+    {
+      "fromStationId": 1,
+      "fromStationName": "图书馆站点",
+      "fromRate": 0.95,
+      "toStationId": 3,
+      "toStationName": "体育馆站点",
+      "toRate": 0.08,
+      "bikeCount": 12
+    }
+  ]
+}
+```
 
 登录成功返回示例：
 
@@ -143,8 +223,11 @@ private static final String BASE_URL = "http://192.168.1.37:8001";
 }
 ```
 
-## 说明
+## 设计要点
 
-- 安全配置放行 `/health`、`/test/**`、`/auth/**`，其余请求需认证（`SecurityConfig`）
-- 密码使用 BCrypt 加密存储，登录成功后签发 24 小时有效的 JWT
+- **统一响应**：所有接口返回 `{ code, msg, data }`，由 `R` 封装；异常由 `GlobalExceptionHandler` 统一转成同结构
+- **认证链路**：登录签发 24 小时有效的 JWT；`JwtAuthenticationFilter` 解析 `Authorization: Bearer {token}` 并写入 SecurityContext，Session 被禁用（无状态）
+- **密码安全**：BCrypt 加密存储，数据库中不保存明文
+- **调度算法**：按站点负荷率（在站车辆 / 容量）判断盈亏——高于 80% 为盈余站点、低于 20% 为缺车站点，以 50% 为目标水位计算可调出/需调入量，再按量降序贪心配对生成调度方案
+- **调度闭环**：任务完成后自动扣减调出站点车辆、增加调入站点车辆（事务保证），且不会超过站点容量
 - 本项目已由微服务架构（user / core / dispatch + gateway）改造为单体架构，历史演进不再保留在版本库中
