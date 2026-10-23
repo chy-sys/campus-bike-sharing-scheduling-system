@@ -1,0 +1,12 @@
+# ========== Android 项目忽略 ==========
+/bike-android-app/.idea/
+/bike-android-app/app/build/
+/bike-android-app/build/
+/bike-android-app/local.properties
+/bike-android-app/*.apk
+/bike-android-app/*.ap_
+/bike-android-app/*.dex
+/bike-android-app/captures/
+/bike-android-app/.gradle/
+/bike-android-app/app/release/
+/bike-android-app/app/debug/
