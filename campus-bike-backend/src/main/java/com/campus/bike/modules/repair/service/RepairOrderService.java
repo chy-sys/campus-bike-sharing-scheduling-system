@@ -20,7 +20,10 @@ public interface RepairOrderService {
      */
     void finish(Long id, Long handlerId, String handleResult, boolean fixed);
 
-    IPage<RepairOrder> page(long pageNum, long pageSize, Integer status);
+    /**
+     * 分页查询：status 按状态过滤；reporterId 非空时只看该报修人的工单（用户端用）
+     */
+    IPage<RepairOrder> page(long pageNum, long pageSize, Integer status, Long reporterId);
 
     RepairOrder getById(Long id);
 }

@@ -38,6 +38,15 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.RideActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.RepairActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".ui.StationActivity"
             android:exported="false" />
 

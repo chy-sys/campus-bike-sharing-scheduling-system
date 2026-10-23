@@ -37,8 +37,12 @@ public class RepairOrderController {
     @GetMapping
     public R<IPage<RepairOrder>> page(@RequestParam(defaultValue = "1") long pageNum,
                                       @RequestParam(defaultValue = "10") long pageSize,
-                                      @RequestParam(required = false) Integer status) {
-        return R.ok(repairOrderService.page(pageNum, pageSize, status));
+                                      @RequestParam(required = false) Integer status,
+                                      @RequestParam(required = false) Boolean mine,
+                                      HttpServletRequest httpRequest) {
+        // mine=true 时只返回当前登录用户提交的工单，供 App 端使用
+        Long reporterId = Boolean.TRUE.equals(mine) ? currentUserId(httpRequest) : null;
+        return R.ok(repairOrderService.page(pageNum, pageSize, status, reporterId));
     }
 
     @GetMapping("/{id}")

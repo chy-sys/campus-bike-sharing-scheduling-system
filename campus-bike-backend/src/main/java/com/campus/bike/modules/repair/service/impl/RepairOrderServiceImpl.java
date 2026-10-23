@@ -99,9 +99,10 @@ public class RepairOrderServiceImpl implements RepairOrderService {
     }
 
     @Override
-    public IPage<RepairOrder> page(long pageNum, long pageSize, Integer status) {
+    public IPage<RepairOrder> page(long pageNum, long pageSize, Integer status, Long reporterId) {
         LambdaQueryWrapper<RepairOrder> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(status != null, RepairOrder::getStatus, status)
+                .eq(reporterId != null, RepairOrder::getReporterId, reporterId)
                 .orderByDesc(RepairOrder::getId);
         return repairOrderMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
     }

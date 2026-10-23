@@ -22,6 +22,20 @@
         android:layout_marginBottom="32dp"/>
 
     <Button
+        android:id="@+id/btn_ride"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="骑行用车"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/btn_repair"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="故障报修"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
         android:id="@+id/btn_stations"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

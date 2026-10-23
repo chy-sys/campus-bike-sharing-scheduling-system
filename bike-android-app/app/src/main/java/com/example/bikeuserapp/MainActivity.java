@@ -10,12 +10,16 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bikeuserapp.ui.DispatchActivity;
 import com.example.bikeuserapp.ui.LoginActivity;
+import com.example.bikeuserapp.ui.RepairActivity;
+import com.example.bikeuserapp.ui.RideActivity;
 import com.example.bikeuserapp.ui.StationActivity;
 import com.example.bikeuserapp.util.SpUtil;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView tvUserInfo;
+    private Button btnRide;
+    private Button btnRepair;
     private Button btnStations;
     private Button btnDispatch;
     private Button btnLogout;
@@ -30,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
 
         // 绑定控件
         tvUserInfo = findViewById(R.id.tv_user_info);
+        btnRide = findViewById(R.id.btn_ride);
+        btnRepair = findViewById(R.id.btn_repair);
         btnStations = findViewById(R.id.btn_stations);
         btnDispatch = findViewById(R.id.btn_dispatch);
         btnLogout = findViewById(R.id.btn_logout);
@@ -38,6 +44,14 @@ public class MainActivity extends AppCompatActivity {
         String userName = SpUtil.getString(SpUtil.KEY_USER_NAME, "");
         String phone = SpUtil.getString(SpUtil.KEY_PHONE, "");
         tvUserInfo.setText("用户名：" + userName + "\n手机号：" + phone);
+
+        // 骑行用车（开锁 / 还车）
+        btnRide.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, RideActivity.class)));
+
+        // 故障报修
+        btnRepair.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, RepairActivity.class)));
 
         // 站点列表
         btnStations.setOnClickListener(v ->

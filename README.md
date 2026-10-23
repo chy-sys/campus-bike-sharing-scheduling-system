@@ -44,6 +44,16 @@ mvn spring-boot:run
 
 ### Android 客户端
 
+| 页面 | 功能 | 对应接口 |
+| --- | --- | --- |
+| `LoginActivity` | 登录（启动页） | `/auth/login` |
+| `RegisterActivity` | 注册 | `/auth/register` |
+| `MainActivity` | 主页，功能入口 | — |
+| `RideActivity` | 开锁用车、还车结算、我的订单 | `/api/orders`、`/api/bikes`、`/api/stations` |
+| `RepairActivity` | 提交报修、我的报修记录 | `/api/repairs?mine=true` |
+| `StationActivity` | 站点列表 | `/api/stations/all` |
+| `DispatchActivity` | 调度建议 | `/api/dispatch/suggest` |
+
 把 `ApiClient.java`、`LoginActivity.java`、`RegisterActivity.java` 中的后端地址改成你电脑的**局域网 IP**（不能用 `localhost`，手机无法访问）：
 
 ```java
