@@ -32,8 +32,17 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- MainActivity 位于主包，不是 ui 包 -->
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".MainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.StationActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.DispatchActivity"
             android:exported="false" />
 
     </application>

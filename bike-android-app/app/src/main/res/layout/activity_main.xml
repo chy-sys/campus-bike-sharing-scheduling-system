@@ -18,13 +18,27 @@
         android:id="@+id/tv_user_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="14sp"/>
+        android:textSize="14sp"
+        android:layout_marginBottom="32dp"/>
+
+    <Button
+        android:id="@+id/btn_stations"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="站点列表"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/btn_dispatch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="调度建议"
+        android:layout_marginBottom="32dp"/>
 
     <Button
         android:id="@+id/btn_logout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="退出登录"
-        android:layout_marginTop="32dp"/>
+        android:text="退出登录"/>
 
 </LinearLayout>
