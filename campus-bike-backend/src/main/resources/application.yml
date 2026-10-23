@@ -1,0 +1,41 @@
+server:
+  port: 8001
+
+spring:
+  application:
+    name: campus-bike-backend
+  # 数据库连接
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/bike_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+
+# MyBatis-Plus配置
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.campus.bike.modules.user.entity,com.campus.bike.modules.vehicle.entity,com.campus.bike.modules.station.entity,com.campus.bike.modules.order.entity,com.campus.bike.modules.repair.entity,com.campus.bike.modules.dispatch.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl   # 开启 SQL 日志打印，方便调试
+    global-config:
+      db-config:
+        id-type: auto
+
+# JWT配置（不配置则使用 JwtUtil 中的默认值）
+jwt:
+  secret: campus_bike_secret_key_2026
+  expiration: 86400000
+
+# 骑行计费规则
+bike:
+  billing:
+    base-price: 1.50        # 起步价（元）
+    base-minutes: 15        # 起步价包含分钟数
+    unit-price: 1.00        # 超出后每单位加价（元）
+    unit-minutes: 15        # 每单位分钟数
+
+# 高德地图（站点电子围栏与路径规划，未配置 key 时相关能力不可用）
+amap:
+  key: ${AMAP_KEY:}
+  web-service-key: ${AMAP_WEB_KEY:}

@@ -1,0 +1,2 @@
+# MyBatis XML 映射文件目录
+# 复杂查询（多表关联、统计报表）在此编写 XML，对应 resources/mapper/*.xml
