@@ -1,58 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="主页面"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp"/>
-
-    <TextView
-        android:id="@+id/tv_user_info"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:layout_marginBottom="32dp"/>
-
-    <Button
-        android:id="@+id/btn_ride"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="骑行用车"
-        android:layout_marginBottom="12dp"/>
+        android:orientation="vertical"
+        android:padding="24dp">
 
-    <Button
-        android:id="@+id/btn_repair"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="故障报修"
-        android:layout_marginBottom="12dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="主页面"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="20dp"/>
 
-    <Button
-        android:id="@+id/btn_stations"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="站点列表"
-        android:layout_marginBottom="12dp"/>
+        <TextView
+            android:id="@+id/tv_user_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:layout_marginBottom="28dp"/>
 
-    <Button
-        android:id="@+id/btn_dispatch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="调度建议"
-        android:layout_marginBottom="32dp"/>
+        <Button
+            android:id="@+id/btn_ride"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="骑行用车"
+            android:layout_marginBottom="12dp"/>
 
-    <Button
-        android:id="@+id/btn_logout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="退出登录"/>
+        <Button
+            android:id="@+id/btn_repair"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="故障报修"
+            android:layout_marginBottom="12dp"/>
 
-</LinearLayout>
+        <Button
+            android:id="@+id/btn_vehicle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="车辆管理"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_stations"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="站点列表"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_dispatch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="调度建议"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_dispatch_task"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="调度任务"
+            android:layout_marginBottom="32dp"/>
+
+        <Button
+            android:id="@+id/btn_logout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="退出登录"/>
+
+    </LinearLayout>
+
+</ScrollView>

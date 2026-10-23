@@ -52,7 +52,9 @@ mvn spring-boot:run
 | `RideActivity` | 开锁用车、还车结算、我的订单 | `/api/orders`、`/api/bikes`、`/api/stations` |
 | `RepairActivity` | 提交报修、我的报修记录 | `/api/repairs?mine=true` |
 | `StationActivity` | 站点列表 | `/api/stations/all` |
-| `DispatchActivity` | 调度建议 | `/api/dispatch/suggest` |
+| `VehicleActivity` | 车辆查询、状态筛选、状态变更 | `/api/bikes` |
+| `DispatchActivity` | 调度建议（只读展示） | `/api/dispatch/suggest` |
+| `DispatchTaskActivity` | 调度任务：采用建议创建、开始/完成/取消 | `/api/dispatch/tasks` |
 
 把 `ApiClient.java`、`LoginActivity.java`、`RegisterActivity.java` 中的后端地址改成你电脑的**局域网 IP**（不能用 `localhost`，手机无法访问）：
 

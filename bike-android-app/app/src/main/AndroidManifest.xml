@@ -47,6 +47,15 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".ui.VehicleActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.DispatchTaskActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".ui.StationActivity"
             android:exported="false" />
 
