@@ -1,5 +1,7 @@
 package com.campus.bike.system.controller;
 
+import com.campus.bike.modules.station.entity.Station;
+import com.campus.bike.modules.station.mapper.StationMapper;
 import com.campus.bike.modules.user.entity.User;
 import com.campus.bike.modules.user.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +18,16 @@ public class TestController {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private StationMapper stationMapper;
+
     @GetMapping("/users")
     public List<User> getUsers() {
         return userMapper.selectList(null);
+    }
+
+    @GetMapping("/stations")
+    public List<Station> getStations() {
+        return stationMapper.selectList(null);
     }
 }

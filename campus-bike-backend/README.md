@@ -47,8 +47,7 @@ campus-bike-backend
 
 创建数据库 `bike_db`，执行：
 
-```sql
-CREATE TABLE sys_user (
+CREATE TABLE IF NOT EXISTS sys_user (
   id          BIGINT PRIMARY KEY AUTO_INCREMENT,
   username    VARCHAR(50),
   phone       VARCHAR(20) UNIQUE,
@@ -58,8 +57,7 @@ CREATE TABLE sys_user (
   create_time DATETIME,
   update_time DATETIME
 );
-
-CREATE TABLE station (
+CREATE TABLE IF NOT EXISTS station (
   id            BIGINT PRIMARY KEY AUTO_INCREMENT,
   name          VARCHAR(100),
   area          VARCHAR(100),
@@ -71,8 +69,7 @@ CREATE TABLE station (
   create_time   DATETIME,
   update_time   DATETIME
 );
-
-CREATE TABLE bike (
+CREATE TABLE IF NOT EXISTS bike (
   id          BIGINT PRIMARY KEY AUTO_INCREMENT,
   bikenumber  VARCHAR(50),
   longitude   DECIMAL(10, 6),
@@ -83,8 +80,7 @@ CREATE TABLE bike (
   create_time DATETIME,
   update_time DATETIME
 );
-
-CREATE TABLE ride_order (
+CREATE TABLE IF NOT EXISTS ride_order (
   id               BIGINT PRIMARY KEY AUTO_INCREMENT,
   order_no         VARCHAR(32),
   user_id          BIGINT,
@@ -99,8 +95,7 @@ CREATE TABLE ride_order (
   create_time      DATETIME,
   update_time      DATETIME
 );
-
-CREATE TABLE repair_order (
+CREATE TABLE IF NOT EXISTS repair_order (
   id            BIGINT PRIMARY KEY AUTO_INCREMENT,
   bike_id       BIGINT,
   reporter_id   BIGINT,
@@ -113,8 +108,7 @@ CREATE TABLE repair_order (
   update_time   DATETIME,
   finish_time   DATETIME
 );
-
-CREATE TABLE dispatch_task (
+CREATE TABLE IF NOT EXISTS dispatch_task (
   id              BIGINT PRIMARY KEY AUTO_INCREMENT,
   from_station_id BIGINT NOT NULL,
   to_station_id   BIGINT NOT NULL,
