@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -29,7 +30,8 @@ public class RepairOrderServiceImpl implements RepairOrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long create(Long reporterId, Long bikeId, Integer faultType, String description) {
+    public Long create(Long reporterId, Long bikeId, Integer faultType, String description,
+                       String images, BigDecimal longitude, BigDecimal latitude) {
         Bike bike = bikeMapper.selectById(bikeId);
         if (bike == null) {
             throw new BizException("车辆不存在");
@@ -48,6 +50,9 @@ public class RepairOrderServiceImpl implements RepairOrderService {
         order.setReporterId(reporterId);
         order.setFaultType(faultType);
         order.setDescription(description);
+        order.setImages(images);
+        order.setLongitude(longitude);
+        order.setLatitude(latitude);
         order.setStatus(RepairOrder.STATUS_PENDING);
         order.setCreateTime(now);
         order.setUpdateTime(now);

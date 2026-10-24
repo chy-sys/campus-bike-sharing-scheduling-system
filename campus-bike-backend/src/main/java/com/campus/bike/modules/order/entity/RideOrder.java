@@ -27,7 +27,13 @@ public class RideOrder {
     private Long userId;
     private Long bikeId;
     private Long startStationId;
+    /** 起点经纬度 */
+    private BigDecimal startLongitude;
+    private BigDecimal startLatitude;
     private Long endStationId;
+    /** 终点经纬度 */
+    private BigDecimal endLongitude;
+    private BigDecimal endLatitude;
     private Date startTime;
     private Date endTime;
     /** 骑行时长（分钟） */

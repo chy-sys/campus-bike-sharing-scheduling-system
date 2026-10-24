@@ -26,6 +26,11 @@ public final class Constants {
     public static final int STATION_STATUS_DISABLED = 0;
     public static final int STATION_STATUS_ENABLED = 1;
 
+    /** 用户角色：0普通用户（师生） 1运维人员 2管理员 */
+    public static final int ROLE_USER = 0;
+    public static final int ROLE_STAFF = 1;
+    public static final int ROLE_ADMIN = 2;
+
     /** 请求头 */
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
@@ -33,4 +38,5 @@ public final class Constants {
     /** 当前登录用户ID（request attribute） */
     public static final String ATTR_USER_ID = "userId";
     public static final String ATTR_PHONE = "phone";
+    public static final String ATTR_ROLE = "role";
 }

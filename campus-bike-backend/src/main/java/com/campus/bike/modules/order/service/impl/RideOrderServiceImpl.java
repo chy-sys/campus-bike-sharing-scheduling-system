@@ -10,6 +10,8 @@ import com.campus.bike.modules.order.mapper.RideOrderMapper;
 import com.campus.bike.modules.order.service.RideOrderService;
 import com.campus.bike.modules.station.entity.Station;
 import com.campus.bike.modules.station.mapper.StationMapper;
+import com.campus.bike.modules.user.entity.User;
+import com.campus.bike.modules.user.mapper.UserMapper;
 import com.campus.bike.modules.vehicle.entity.Bike;
 import com.campus.bike.modules.vehicle.mapper.BikeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,8 @@ public class RideOrderServiceImpl implements RideOrderService {
     private BikeMapper bikeMapper;
     @Autowired
     private StationMapper stationMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     @Value("${bike.billing.base-price:1.50}")
     private BigDecimal basePrice;
@@ -139,6 +143,9 @@ public class RideOrderServiceImpl implements RideOrderService {
         update.setUpdateTime(now);
         rideOrderMapper.updateById(update);
 
+        // 虚拟账户扣费（本地模拟支付，不对接第三方）
+        deductBalance(order.getUserId(), update.getAmount());
+
         return rideOrderMapper.selectById(orderId);
     }
 
@@ -193,6 +200,29 @@ public class RideOrderServiceImpl implements RideOrderService {
         update.setEndTime(new Date());
         update.setUpdateTime(new Date());
         rideOrderMapper.updateById(update);
+    }
+
+    /**
+     * 从虚拟账户扣除骑行费用，余额不足时扣至 0（演示场景不阻断还车）
+     */
+    private void deductBalance(Long userId, BigDecimal amount) {
+        if (userId == null || amount == null) {
+            return;
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return;
+        }
+        BigDecimal balance = user.getBalance() == null ? BigDecimal.ZERO : user.getBalance();
+        BigDecimal remain = balance.subtract(amount);
+        if (remain.compareTo(BigDecimal.ZERO) < 0) {
+            remain = BigDecimal.ZERO;
+        }
+        User update = new User();
+        update.setId(userId);
+        update.setBalance(remain);
+        update.setUpdateTime(new Date());
+        userMapper.updateById(update);
     }
 
     @Override

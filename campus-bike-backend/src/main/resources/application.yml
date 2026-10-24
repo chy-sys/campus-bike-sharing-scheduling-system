@@ -8,6 +8,11 @@ server:
 spring:
   application:
     name: campus-bike-backend
+  # 文件上传大小限制
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   # 数据库连接
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -38,6 +43,11 @@ bike:
     base-minutes: 15        # 起步价包含分钟数
     unit-price: 1.00        # 超出后每单位加价（元）
     unit-minutes: 15        # 每单位分钟数
+
+# 文件上传（报修拍照等）：图片存到 upload-path，通过 access-prefix 访问
+file:
+  upload-path: uploads/
+  access-prefix: /uploads/
 
 # 高德地图（站点电子围栏与路径规划，未配置 key 时相关能力不可用）
 amap:

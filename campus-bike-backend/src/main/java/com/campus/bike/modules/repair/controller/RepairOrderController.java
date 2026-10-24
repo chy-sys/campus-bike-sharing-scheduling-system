@@ -31,7 +31,9 @@ public class RepairOrderController {
     public R<Long> create(@Valid @RequestBody RepairRequest request, HttpServletRequest httpRequest) {
         Long userId = currentUserId(httpRequest);
         return R.ok("报修提交成功",
-                repairOrderService.create(userId, request.getBikeId(), request.getFaultType(), request.getDescription()));
+                repairOrderService.create(userId, request.getBikeId(), request.getFaultType(),
+                        request.getDescription(), request.getImages(),
+                        request.getLongitude(), request.getLatitude()));
     }
 
     @GetMapping

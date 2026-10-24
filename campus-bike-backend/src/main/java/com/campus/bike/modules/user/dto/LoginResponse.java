@@ -10,4 +10,6 @@ public class LoginResponse {
     private Long userId;
     private String userName;
     private String phone;
+    /** 角色：0普通用户 1运维人员 2管理员 */
+    private Integer role;
 }

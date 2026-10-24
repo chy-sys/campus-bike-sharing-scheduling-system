@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -22,4 +23,6 @@ public class User {
     private String password;
     private Integer status;
     private Integer role;
+    /** 虚拟账户余额（元），骑行结束后自动扣费 */
+    private BigDecimal balance;
 }

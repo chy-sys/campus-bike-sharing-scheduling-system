@@ -29,8 +29,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        // 无需登录即可访问
-                        .antMatchers("/health", "/test/**", "/auth/**")
+                        // 无需登录即可访问（含上传的图片等静态资源）
+                        .antMatchers("/health", "/test/**", "/auth/**", "/uploads/**", "/admin/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

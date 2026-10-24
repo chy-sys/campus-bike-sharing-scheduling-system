@@ -7,8 +7,13 @@ public interface RepairOrderService {
 
     /**
      * 提交报修：车辆置为故障状态
+     *
+     * @param images    拍照上传的图片地址，多个用逗号分隔
+     * @param longitude 报修位置经度
+     * @param latitude  报修位置纬度
      */
-    Long create(Long reporterId, Long bikeId, Integer faultType, String description);
+    Long create(Long reporterId, Long bikeId, Integer faultType, String description,
+                String images, java.math.BigDecimal longitude, java.math.BigDecimal latitude);
 
     /**
      * 受理工单

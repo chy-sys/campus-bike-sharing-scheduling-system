@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -28,6 +29,11 @@ public class RepairOrder {
     /** 故障类型：1刹车失灵 2轮胎损坏 3链条故障 4电量不足 5其他 */
     private Integer faultType;
     private String description;
+    /** 报修图片地址，多个用逗号分隔 */
+    private String images;
+    /** 报修位置 */
+    private BigDecimal longitude;
+    private BigDecimal latitude;
     /** 状态 */
     private Integer status;
     /** 处理人 */

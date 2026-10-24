@@ -1,6 +1,7 @@
 package com.campus.bike.modules.user.controller;
 
 import com.campus.bike.common.R;
+import com.campus.bike.common.constant.Constants;
 import com.campus.bike.modules.user.dto.LoginRequest;
 import com.campus.bike.modules.user.dto.LoginResponse;
 import com.campus.bike.modules.user.dto.RegisterRequest;
@@ -38,7 +39,8 @@ public class AuthController {
             return R.fail(401, "手机号或密码错误");
         }
         User user = userService.getUserByPhone(request.getPhone());
-        LoginResponse data = new LoginResponse(token, user.getId(), user.getUsername(), user.getPhone());
+        Integer role = user.getRole() == null ? Constants.ROLE_USER : user.getRole();
+        LoginResponse data = new LoginResponse(token, user.getId(), user.getUsername(), user.getPhone(), role);
         return R.ok("登录成功", data);
     }
 }

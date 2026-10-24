@@ -1,5 +1,6 @@
 package com.campus.bike.system.security;
 
+import com.campus.bike.common.constant.Constants;
 import com.campus.bike.common.utils.JwtUtil;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -39,16 +40,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwtUtil.validateToken(token)) {
                 String phone = jwtUtil.getPhoneFromToken(token);
                 Long userId = jwtUtil.getUserIdFromToken(token);
+                Integer role = jwtUtil.getRoleFromToken(token);
+
+                // 按角色授予权限：普通用户 / 运维人员 / 管理员
+                String authority;
+                if (role != null && role == Constants.ROLE_ADMIN) {
+                    authority = "ROLE_ADMIN";
+                } else if (role != null && role == Constants.ROLE_STAFF) {
+                    authority = "ROLE_STAFF";
+                } else {
+                    authority = "ROLE_USER";
+                }
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                phone, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+                                phone, null, Collections.singletonList(new SimpleGrantedAuthority(authority)));
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                // 供 Controller / Service 直接取当前登录用户ID
-                request.setAttribute("userId", userId);
-                request.setAttribute("phone", phone);
+                // 供 Controller / Service 直接取当前登录用户信息
+                request.setAttribute(Constants.ATTR_USER_ID, userId);
+                request.setAttribute(Constants.ATTR_PHONE, phone);
+                request.setAttribute(Constants.ATTR_ROLE, role);
             }
         }
         filterChain.doFilter(request, response);

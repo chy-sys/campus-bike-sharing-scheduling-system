@@ -23,9 +23,17 @@ public class JwtUtil {
      * 生成 JWT Token
      */
     public String generateToken(Long userId, String phone) {
+        return generateToken(userId, phone, 0);
+    }
+
+    /**
+     * 生成 JWT Token（携带角色，供运维小程序与 Web 后台鉴权）
+     */
+    public String generateToken(Long userId, String phone, Integer role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("phone", phone);
+        claims.put("role", role == null ? 0 : role);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(phone)
@@ -57,6 +65,20 @@ public class JwtUtil {
      */
     public String getPhoneFromToken(String token) {
         return getClaimsFromToken(token).get("phone", String.class);
+    }
+
+    /**
+     * 获取角色：0普通用户 1运维人员 2管理员
+     */
+    public Integer getRoleFromToken(String token) {
+        Object role = getClaimsFromToken(token).get("role");
+        if (role instanceof Number) {
+            return ((Number) role).intValue();
+        }
+        if (role == null) {
+            return 0;
+        }
+        return Integer.parseInt(String.valueOf(role));
     }
 
     /**
