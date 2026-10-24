@@ -29,6 +29,9 @@ dependencyResolutionManagement {
         maven { url = uri("https://maven.aliyun.com/repository/google") }
         maven { url = uri("https://maven.aliyun.com/repository/central") }
 
+        // 高德地图 SDK 专属仓库
+        maven { url = uri("https://maven.amap.com/repository/maven/") }
+
         // 原有官方源保留，作为兜底备用
         google()
         mavenCentral()

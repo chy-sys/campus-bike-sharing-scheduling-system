@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">BikeUserApp</string>
+    <!-- 高德地图 Web 端 Key（JS API），到 https://console.amap.com 申请后填入，用于地图页展示 -->
+    <string name="amap_js_key">REPLACE_WITH_YOUR_AMAP_WEB_KEY</string>
 </resources>

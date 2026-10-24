@@ -53,4 +53,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.gson)
+    // 扫码开锁：识别车身二维码
+    implementation(libs.zxing.android.embedded)
+    // 地图页通过 WebView 加载高德地图 H5（无需原生 SDK，避免依赖体积与仓库问题）
 }

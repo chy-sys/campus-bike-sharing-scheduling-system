@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>校园单车地图</title>
+    <style>
+        html, body, #container { width: 100%; height: 100%; margin: 0; padding: 0; }
+        #tip { padding: 16px; font-size: 14px; color: #666; line-height: 1.6; }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<div id="tip">地图加载中...</div>
+
+<script>
+    var map = null;
+    var pendingStations = null;
+
+    /**
+     * 初始化地图：key 为空时给出提示，不加载地图脚本
+     */
+    function initMap(key, lng, lat) {
+        var tip = document.getElementById('tip');
+        if (!key || key.indexOf('REPLACE') === 0) {
+            tip.innerHTML = '未配置高德地图 Key。<br>请在 app/src/main/res/values/strings.xml 的 amap_js_key 中填入你的 Web 端 Key 后重新编译。<br><br>下方列表仍可按距离查看附近站点。';
+            return;
+        }
+        var script = document.createElement('script');
+        script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + key;
+        script.onload = function () {
+            document.getElementById('tip').style.display = 'none';
+            map = new AMap.Map('container', {
+                zoom: 15,
+                center: [lng, lat],
+                viewMode: '2D'
+            });
+            if (pendingStations) {
+                addMarkers(pendingStations);
+            }
+        };
+        script.onerror = function () {
+            tip.innerHTML = '地图脚本加载失败，请检查网络连接。';
+        };
+        document.head.appendChild(script);
+    }
+
+    /**
+     * 接收 Android 传入的站点数据并打点
+     * stations: [{name, lng, lat, currentCount, capacity}]
+     */
+    function setStations(stations) {
+        pendingStations = stations;
+        if (map) {
+            addMarkers(stations);
+        }
+    }
+
+    function addMarkers(stations) {
+        map.clearMap();
+        stations.forEach(function (s) {
+            if (!s.lng || !s.lat) return;
+            var rate = s.capacity > 0 ? Math.round(s.currentCount / s.capacity * 100) : 0;
+            var marker = new AMap.Marker({
+                position: [s.lng, s.lat],
+                title: s.name + '（' + s.currentCount + '/' + s.capacity + '）'
+            });
+            map.add(marker);
+
+            var infoWindow = new AMap.InfoWindow({
+                content: '<div style="padding:6px 10px;font-size:13px">'
+                    + '<b>' + s.name + '</b><br>在站 ' + s.currentCount + ' / 容量 ' + s.capacity
+                    + '<br>负荷率 ' + rate + '%</div>',
+                offset: new AMap.Pixel(0, -30)
+            });
+            marker.on('click', function () {
+                infoWindow.open(map, [s.lng, s.lat]);
+            });
+        });
+        if (stations.length > 0 && stations[0].lng && stations[0].lat) {
+            map.setFitView();
+        }
+    }
+</script>
+</body>
+</html>

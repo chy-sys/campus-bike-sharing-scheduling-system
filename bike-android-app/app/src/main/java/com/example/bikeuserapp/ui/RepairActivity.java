@@ -1,5 +1,6 @@
 package com.example.bikeuserapp.ui;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -8,9 +9,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import com.example.bikeuserapp.R;
 import com.example.bikeuserapp.util.ApiClient;
@@ -19,6 +24,8 @@ import com.example.bikeuserapp.util.SpUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +33,7 @@ import java.util.List;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -39,8 +47,24 @@ public class RepairActivity extends AppCompatActivity {
     private Spinner spBike;
     private Spinner spFaultType;
     private EditText etDescription;
+    private Button btnTakePhoto;
+    private TextView tvPhotoStatus;
     private Button btnSubmit;
     private ListView lvRepairs;
+
+    /** 本次报修拍摄的照片 */
+    private File photoFile;
+    /** 照片上传后的访问地址 */
+    private String imageUrl;
+
+    private final ActivityResultLauncher<Uri> takePictureLauncher =
+            registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
+                if (Boolean.TRUE.equals(success) && photoFile != null) {
+                    uploadImage(photoFile);
+                } else {
+                    toast("已取消拍照");
+                }
+            });
 
     private final List<RideActivity.Option> bikeList = new ArrayList<>();
     private final List<RideActivity.Option> faultTypes = new ArrayList<>();
@@ -59,6 +83,8 @@ public class RepairActivity extends AppCompatActivity {
         spBike = findViewById(R.id.sp_bike);
         spFaultType = findViewById(R.id.sp_fault_type);
         etDescription = findViewById(R.id.et_description);
+        btnTakePhoto = findViewById(R.id.btn_take_photo);
+        tvPhotoStatus = findViewById(R.id.tv_photo_status);
         btnSubmit = findViewById(R.id.btn_submit);
         lvRepairs = findViewById(R.id.lv_repairs);
 
@@ -73,6 +99,7 @@ public class RepairActivity extends AppCompatActivity {
         faultTypes.add(new RideActivity.Option(5, "其他"));
         bindSpinner(spFaultType, faultTypes);
 
+        btnTakePhoto.setOnClickListener(v -> takePhoto());
         btnSubmit.setOnClickListener(v -> submitRepair());
 
         loadBikes();
@@ -197,6 +224,7 @@ public class RepairActivity extends AppCompatActivity {
             json.put("bikeId", bike.id);
             json.put("faultType", (int) fault.id);
             json.put("description", description);
+            json.put("images", imageUrl == null ? "" : imageUrl);
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
             Request request = new Request.Builder()
@@ -219,6 +247,8 @@ public class RepairActivity extends AppCompatActivity {
                             toast(res.optString("msg", "操作完成"));
                             if (res.getInt("code") == 200) {
                                 etDescription.setText("");
+                                imageUrl = null;
+                                tvPhotoStatus.setText("未上传照片（可选）");
                                 loadRepairs();
                                 loadBikes();
                             }
@@ -231,6 +261,72 @@ public class RepairActivity extends AppCompatActivity {
             });
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    /** 调用系统相机拍摄故障照片 */
+    private void takePhoto() {
+        File dir = new File(getCacheDir(), "images");
+        if (!dir.exists() && !dir.mkdirs()) {
+            toast("创建缓存目录失败");
+            return;
+        }
+        photoFile = new File(dir, "repair_" + System.currentTimeMillis() + ".jpg");
+        Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", photoFile);
+        takePictureLauncher.launch(uri);
+    }
+
+    /** 上传照片：POST /api/files/upload */
+    private void uploadImage(File file) {
+        try {
+            byte[] bytes = new byte[(int) file.length()];
+            try (FileInputStream input = new FileInputStream(file)) {
+                int read = input.read(bytes);
+                if (read <= 0) {
+                    toast("读取照片失败");
+                    return;
+                }
+            }
+            MultipartBody body = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("file", file.getName(),
+                            RequestBody.create(bytes, MediaType.parse("image/jpeg")))
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(ApiClient.url("/api/files/upload"))
+                    .post(body)
+                    .build();
+
+            ApiClient.client().newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    handler.post(() -> toast("照片上传失败"));
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String result = response.body().string();
+                    handler.post(() -> {
+                        try {
+                            JSONObject res = new JSONObject(result);
+                            if (res.getInt("code") == 200) {
+                                imageUrl = res.optString("data", "");
+                                tvPhotoStatus.setText("已上传故障照片");
+                                toast("照片上传成功");
+                            } else {
+                                toast(res.optString("msg", "照片上传失败"));
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            toast("数据解析错误");
+                        }
+                    });
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            toast("照片处理失败");
         }
     }
 

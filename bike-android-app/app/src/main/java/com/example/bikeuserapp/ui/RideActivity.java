@@ -1,5 +1,7 @@
 package com.example.bikeuserapp.ui;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,16 +12,21 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.bikeuserapp.R;
 import com.example.bikeuserapp.util.ApiClient;
 import com.example.bikeuserapp.util.SpUtil;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,9 +47,27 @@ public class RideActivity extends AppCompatActivity {
     private Spinner spBike;
     private Spinner spStartStation;
     private Spinner spEndStation;
+    private Button btnScan;
     private Button btnStart;
     private Button btnEnd;
     private ListView lvOrders;
+
+    private static final int REQUEST_CAMERA = 1001;
+
+    /** 扫码结果回调：解析二维码中的车辆编号并开锁 */
+    private final ActivityResultLauncher<ScanOptions> scanLauncher =
+            registerForActivityResult(new ScanContract(), result -> {
+                if (result.getContents() == null) {
+                    toast("已取消扫码");
+                    return;
+                }
+                String content = result.getContents().trim();
+                // 二维码内容支持 SMOKE001 或 bike:SMOKE001 两种格式
+                String bikeNumber = content.contains(":")
+                        ? content.substring(content.lastIndexOf(':') + 1)
+                        : content;
+                startRideByBikeNumber(bikeNumber);
+            });
 
     private final List<Option> bikeList = new ArrayList<>();
     private final List<Option> stationList = new ArrayList<>();
@@ -62,6 +87,7 @@ public class RideActivity extends AppCompatActivity {
         SpUtil.init(this);
         setContentView(R.layout.activity_ride);
 
+        btnScan = findViewById(R.id.btn_scan);
         tvCurrentOrder = findViewById(R.id.tv_current_order);
         spBike = findViewById(R.id.sp_bike);
         spStartStation = findViewById(R.id.sp_start_station);
@@ -73,6 +99,7 @@ public class RideActivity extends AppCompatActivity {
         orderAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, orderItems);
         lvOrders.setAdapter(orderAdapter);
 
+        btnScan.setOnClickListener(v -> scanBike());
         btnStart.setOnClickListener(v -> startRide());
         btnEnd.setOnClickListener(v -> endRide());
 
@@ -238,11 +265,100 @@ public class RideActivity extends AppCompatActivity {
             toast("请先选择取车站点");
             return;
         }
+        doStartRide(bike.id, station.id);
+    }
 
+    /** 扫码开锁：按二维码中的车辆编号查询车辆后开锁 */
+    private void scanBike() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA);
+            return;
+        }
+        ScanOptions options = new ScanOptions();
+        options.setPrompt("对准车身二维码");
+        options.setBeepEnabled(true);
+        options.setOrientationLocked(false);
+        scanLauncher.launch(options);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CAMERA) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                scanBike();
+            } else {
+                toast("需要相机权限才能扫码");
+            }
+        }
+    }
+
+    private void startRideByBikeNumber(String bikeNumber) {
+        String path;
+        try {
+            path = "/api/bikes?pageNum=1&pageSize=10&keyword=" + URLEncoder.encode(bikeNumber, "UTF-8");
+        } catch (Exception e) {
+            path = "/api/bikes?pageNum=1&pageSize=10";
+        }
+
+        Request request = new Request.Builder()
+                .url(ApiClient.url(path))
+                .get()
+                .build();
+
+        ApiClient.client().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                handler.post(() -> toast("网络连接失败"));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String body = response.body().string();
+                handler.post(() -> {
+                    try {
+                        JSONObject res = new JSONObject(body);
+                        if (res.getInt("code") != 200) {
+                            toast(res.optString("msg", "车辆查询失败"));
+                            return;
+                        }
+                        JSONArray records = res.getJSONObject("data").getJSONArray("records");
+                        if (records.length() == 0) {
+                            toast("未找到二维码对应的车辆：" + bikeNumber);
+                            return;
+                        }
+                        JSONObject bike = records.getJSONObject(0);
+                        if (bike.optInt("status", 0) != 1) {
+                            toast("该车辆当前不可使用");
+                            return;
+                        }
+                        long bikeId = bike.getLong("id");
+                        long stationId = bike.optLong("stationId", 0L);
+                        if (stationId == 0L) {
+                            Option selected = (Option) spStartStation.getSelectedItem();
+                            if (selected == null) {
+                                toast("该车辆未绑定站点，请先选择取车站点");
+                                return;
+                            }
+                            stationId = selected.id;
+                        }
+                        doStartRide(bikeId, stationId);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        toast("车辆数据解析错误");
+                    }
+                });
+            }
+        });
+    }
+
+    /** 开锁用车：POST /api/orders/start */
+    private void doStartRide(long bikeId, long stationId) {
         try {
             JSONObject json = new JSONObject();
-            json.put("bikeId", bike.id);
-            json.put("startStationId", station.id);
+            json.put("bikeId", bikeId);
+            json.put("startStationId", stationId);
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
             Request request = new Request.Builder()

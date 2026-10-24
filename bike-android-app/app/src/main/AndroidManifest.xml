@@ -4,6 +4,15 @@
 
     <!-- 网络访问权限 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 扫码开锁 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- 定位：附近站点按距离排序 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- 报修拍照上传 -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -43,6 +52,26 @@
 
         <activity
             android:name=".ui.RepairActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- 报修拍照：通过 FileProvider 把图片传给系统相机 -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <activity
+            android:name=".ui.MapActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.ProfileActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 

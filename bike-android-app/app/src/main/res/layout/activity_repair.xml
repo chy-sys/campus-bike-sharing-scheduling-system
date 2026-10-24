@@ -58,6 +58,21 @@
         android:layout_marginBottom="16dp"/>
 
     <Button
+        android:id="@+id/btn_take_photo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="拍照上传故障照片"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tv_photo_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="未上传照片（可选）"
+        android:textSize="12sp"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
         android:id="@+id/btn_submit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

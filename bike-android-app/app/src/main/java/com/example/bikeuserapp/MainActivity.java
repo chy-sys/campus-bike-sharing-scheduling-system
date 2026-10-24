@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.bikeuserapp.ui.DispatchActivity;
 import com.example.bikeuserapp.ui.DispatchTaskActivity;
 import com.example.bikeuserapp.ui.LoginActivity;
+import com.example.bikeuserapp.ui.MapActivity;
+import com.example.bikeuserapp.ui.ProfileActivity;
 import com.example.bikeuserapp.ui.RepairActivity;
 import com.example.bikeuserapp.ui.RideActivity;
 import com.example.bikeuserapp.ui.StationActivity;
@@ -20,12 +22,14 @@ import com.example.bikeuserapp.util.SpUtil;
 public class MainActivity extends AppCompatActivity {
 
     private TextView tvUserInfo;
+    private Button btnMap;
     private Button btnRide;
     private Button btnRepair;
     private Button btnVehicle;
     private Button btnStations;
     private Button btnDispatch;
     private Button btnDispatchTask;
+    private Button btnProfile;
     private Button btnLogout;
 
     @Override
@@ -38,18 +42,24 @@ public class MainActivity extends AppCompatActivity {
 
         // 绑定控件
         tvUserInfo = findViewById(R.id.tv_user_info);
+        btnMap = findViewById(R.id.btn_map);
         btnRide = findViewById(R.id.btn_ride);
         btnRepair = findViewById(R.id.btn_repair);
         btnVehicle = findViewById(R.id.btn_vehicle);
         btnStations = findViewById(R.id.btn_stations);
         btnDispatch = findViewById(R.id.btn_dispatch);
         btnDispatchTask = findViewById(R.id.btn_dispatch_task);
+        btnProfile = findViewById(R.id.btn_profile);
         btnLogout = findViewById(R.id.btn_logout);
 
         // 读取本地存储的用户信息，验证登录态
         String userName = SpUtil.getString(SpUtil.KEY_USER_NAME, "");
         String phone = SpUtil.getString(SpUtil.KEY_PHONE, "");
         tvUserInfo.setText("用户名：" + userName + "\n手机号：" + phone);
+
+        // 地图：站点分布与附近站点
+        btnMap.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, MapActivity.class)));
 
         // 骑行用车（开锁 / 还车）
         btnRide.setOnClickListener(v ->
@@ -74,6 +84,10 @@ public class MainActivity extends AppCompatActivity {
         // 调度任务（创建与推进）
         btnDispatchTask.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, DispatchTaskActivity.class)));
+
+        // 个人中心
+        btnProfile.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, ProfileActivity.class)));
 
         // 退出登录
         btnLogout.setOnClickListener(v -> {

@@ -11,6 +11,7 @@ constraintlayout = "2.1.4"
 okhttp = "4.12.0"       # OkHttp 底层网络库版本
 retrofit = "2.11.0"      # Retrofit 接口封装库版本
 gson = "2.10.1"          # Gson JSON解析库版本
+zxing = "4.3.0"          # 扫码（二维码识别）库版本
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -25,6 +26,8 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+zxing-android-embedded = { group = "com.journeyapps", name = "zxing-android-embedded", version.ref = "zxing" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

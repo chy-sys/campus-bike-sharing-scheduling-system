@@ -26,6 +26,13 @@
             android:layout_marginBottom="28dp"/>
 
         <Button
+            android:id="@+id/btn_map"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="地图与附近站点"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
             android:id="@+id/btn_ride"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -65,6 +72,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="调度任务"
+            android:layout_marginBottom="32dp"/>
+
+        <Button
+            android:id="@+id/btn_profile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="个人中心"
             android:layout_marginBottom="32dp"/>
 
         <Button
