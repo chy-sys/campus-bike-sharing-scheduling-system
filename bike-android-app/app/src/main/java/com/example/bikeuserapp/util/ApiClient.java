@@ -9,7 +9,8 @@ import okhttp3.Request;
 public class ApiClient {
 
     /** 改成你电脑的局域网IP，不能用 localhost */
-    private static final String BASE_URL = "http://192.168.1.37:8001";
+    // 后端地址：真机调试填电脑的局域网 IP（cmd 里 ipconfig 查看），模拟器用 10.0.2.2
+    private static final String BASE_URL = "http://172.27.104.169:8001";
 
     private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
             .addInterceptor(chain -> {

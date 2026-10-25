@@ -38,7 +38,8 @@ public class LoginActivity extends AppCompatActivity {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     // 后端接口地址：改成你电脑的局域网IP，不能用localhost
-    private static final String BASE_URL = "http://192.168.1.37:8001";
+    // 后端地址：真机调试填电脑的局域网 IP，模拟器用 10.0.2.2
+    private static final String BASE_URL = "http://172.27.104.169:8001";
 
     private static final String LOGIN_URL = BASE_URL + "/auth/login";
 
