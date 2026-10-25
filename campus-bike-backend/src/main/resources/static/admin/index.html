@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>校园共享单车调度管理系统 - 管理后台</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: -apple-system, "Microsoft YaHei", Arial, sans-serif; background: #f5f7fa; color: #303133; }
+        .login-wrap { display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-box { width: 360px; padding: 32px; background: #fff; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+        .login-box h2 { margin: 0 0 24px; font-size: 20px; text-align: center; }
+        .form-item { margin-bottom: 16px; }
+        .form-item label { display: block; margin-bottom: 6px; font-size: 13px; color: #606266; }
+        input, select { width: 100%; padding: 9px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #409eff; }
+        button { padding: 9px 16px; border: none; border-radius: 4px; background: #409eff; color: #fff; font-size: 14px; cursor: pointer; }
+        button:hover { background: #66b1ff; }
+        button.danger { background: #f56c6c; }
+        button.danger:hover { background: #f78989; }
+        button.success { background: #67c23a; }
+        button.success:hover { background: #85ce61; }
+        button.small { padding: 4px 10px; font-size: 12px; }
+        .full { width: 100%; }
+        header { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 60px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+        header h1 { margin: 0; font-size: 18px; }
+        .user-info { font-size: 13px; color: #606266; }
+        nav { display: flex; gap: 4px; padding: 12px 24px; background: #fff; border-bottom: 1px solid #ebeef5; flex-wrap: wrap; }
+        nav button { background: #fff; color: #606266; border: 1px solid #dcdfe6; }
+        nav button.active { background: #409eff; color: #fff; border-color: #409eff; }
+        main { padding: 20px 24px; }
+        .card { padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.05); margin-bottom: 16px; }
+        .card h3 { margin: 0 0 16px; font-size: 16px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+        .stat { padding: 16px; background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+        .stat .label { font-size: 13px; color: #909399; }
+        .stat .value { margin-top: 8px; font-size: 24px; font-weight: bold; color: #409eff; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 10px 8px; border-bottom: 1px solid #ebeef5; text-align: left; }
+        th { background: #fafafa; color: #606266; font-weight: 500; }
+        tr:hover td { background: #f5f7fa; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; align-items: end; }
+        .empty { padding: 32px; text-align: center; color: #909399; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; background: #ecf5ff; color: #409eff; }
+        .tag.warn { background: #fdf6ec; color: #e6a23c; }
+        .tag.ok { background: #f0f9eb; color: #67c23a; }
+        .tag.gray { background: #f4f4f5; color: #909399; }
+    </style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginWrap">
+    <div class="login-box">
+        <h2>管理后台登录</h2>
+        <div class="form-item">
+            <label>管理员手机号</label>
+            <input id="loginPhone" placeholder="请输入手机号" value="13900139000">
+        </div>
+        <div class="form-item">
+            <label>密码</label>
+            <input id="loginPassword" type="password" placeholder="请输入密码" value="123456">
+        </div>
+        <button class="full" onclick="doLogin()">登录</button>
+        <p style="margin-top:14px;font-size:12px;color:#909399;line-height:1.6">
+            仅管理员账号可进入。请先在数据库中把账号的 role 设为 2：<br>
+            UPDATE sys_user SET role=2 WHERE phone='你的手机号';
+        </p>
+    </div>
+</div>
+
+<div id="appWrap" style="display:none">
+    <header>
+        <h1>校园共享单车调度管理系统</h1>
+        <div class="user-info">
+            <span id="adminName"></span>
+            <button class="small" style="margin-left:12px" onclick="doLogout()">退出</button>
+        </div>
+    </header>
+    <nav id="nav"></nav>
+    <main id="content"></main>
+</div>
+
+<script>
+    var state = { token: '', user: null, tab: 'dashboard' };
+
+    var TABS = [
+        { key: 'dashboard', name: '数据看板', render: renderDashboard },
+        { key: 'users', name: '账号管理', render: renderUsers },
+        { key: 'bikes', name: '车辆管理', render: renderBikes },
+        { key: 'stations', name: '站点管理', render: renderStations },
+        { key: 'orders', name: '订单管理', render: renderOrders },
+        { key: 'dispatch', name: '调度任务', render: renderDispatch },
+        { key: 'repairs', name: '运维工单', render: renderRepairs }
+    ];
+
+    /* ---------- 基础请求 ---------- */
+    function api(path, method, body) {
+        method = method || 'GET';
+        var headers = {};
+        if (state.token) headers['Authorization'] = 'Bearer ' + state.token;
+        if (body) headers['Content-Type'] = 'application/json';
+        return fetch(path, {
+            method: method,
+            headers: headers,
+            body: body ? JSON.stringify(body) : undefined
+        }).then(function (r) { return r.json(); }).then(function (json) {
+            if (json.code !== 200) {
+                alert(json.msg || '操作失败');
+                throw new Error(json.msg);
+            }
+            return json.data;
+        });
+    }
+
+    function esc(value) {
+        if (value === null || value === undefined) return '';
+        return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function tableHtml(headers, rows) {
+        if (!rows.length) return '<div class="empty">暂无数据</div>';
+        var head = headers.map(function (h) { return '<th>' + h + '</th>'; }).join('');
+        var bodyHtml = rows.map(function (row) {
+            return '<tr>' + row.map(function (cell) { return '<td>' + cell + '</td>'; }).join('') + '</tr>';
+        }).join('');
+        return '<table><thead><tr>' + head + '</tr></thead><tbody>' + bodyHtml + '</tbody></table>';
+    }
+
+    /* ---------- 登录 ---------- */
+    function doLogin() {
+        var phone = document.getElementById('loginPhone').value.trim();
+        var password = document.getElementById('loginPassword').value.trim();
+        if (!phone || !password) { alert('请输入手机号与密码'); return; }
+
+        fetch('/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: phone, password: password })
+        }).then(function (r) { return r.json(); }).then(function (res) {
+            if (res.code !== 200) { alert(res.msg || '登录失败'); return; }
+            if (res.data.role !== 2) { alert('该账号不是管理员（role=' + res.data.role + '），无法进入后台'); return; }
+            state.token = res.data.token;
+            state.user = res.data;
+            document.getElementById('adminName').textContent = res.data.userName + '（管理员）';
+            document.getElementById('loginWrap').style.display = 'none';
+            document.getElementById('appWrap').style.display = 'block';
+            renderNav();
+            render();
+        });
+    }
+
+    function doLogout() {
+        state.token = '';
+        state.user = null;
+        document.getElementById('appWrap').style.display = 'none';
+        document.getElementById('loginWrap').style.display = 'flex';
+    }
+
+    function renderNav() {
+        document.getElementById('nav').innerHTML = TABS.map(function (t) {
+            return '<button class="' + (state.tab === t.key ? 'active' : '') + '" onclick="switchTab(\'' + t.key + '\')">' + t.name + '</button>';
+        }).join('');
+    }
+
+    function switchTab(key) {
+        state.tab = key;
+        renderNav();
+        render();
+    }
+
+    function render() {
+        var content = document.getElementById('content');
+        content.innerHTML = '<div class="card"><div class="empty">加载中...</div></div>';
+        var tab = TABS.filter(function (t) { return t.key === state.tab; })[0];
+        tab.render().then(function (html) {
+            content.innerHTML = html;
+        }).catch(function () {
+            content.innerHTML = '<div class="card"><div class="empty">加载失败</div></div>';
+        });
+    }
+
+    /* ---------- 1. 数据看板 ---------- */
+    function renderDashboard() {
+        return api('/api/stats/overview').then(function (d) {
+            function stat(label, value) {
+                return '<div class="stat"><div class="label">' + label + '</div><div class="value">' + value + '</div></div>';
+            }
+            return '<div class="stats">'
+                + stat('用户总数', d.userTotal)
+                + stat('站点总数', d.stationTotal)
+                + stat('车辆总数', d.bikeTotal)
+                + stat('可用车辆', d.bikeAvailable)
+                + stat('故障车辆', d.bikeFault)
+                + stat('车辆周转率', d.bikeTurnoverRate)
+                + stat('车辆故障率', (d.faultRate * 100).toFixed(1) + '%')
+                + stat('订单总数', d.orderTotal)
+                + stat('今日订单', d.orderToday)
+                + stat('订单总金额', '¥' + d.orderAmountTotal)
+                + stat('调度任务数', d.dispatchTotal)
+                + stat('今日调度', d.dispatchToday)
+                + stat('报修工单数', d.repairTotal)
+                + stat('工单办结率', (d.repairFinishRate * 100).toFixed(1) + '%')
+                + '</div>';
+        });
+    }
+
+    /* ---------- 2. 账号管理 ---------- */
+    function renderUsers() {
+        return api('/api/users?pageNum=1&pageSize=50').then(function (page) {
+            var rows = page.records.map(function (u) {
+                var roleText = u.role === 2 ? '<span class="tag">管理员</span>'
+                    : u.role === 1 ? '<span class="tag warn">运维人员</span>'
+                        : '<span class="tag gray">普通用户</span>';
+                return [
+                    u.id, esc(u.username), esc(u.phone), roleText,
+                    '¥' + (u.balance === null ? '0.00' : u.balance),
+                    '<select id="role_' + u.id + '" style="width:110px">'
+                    + '<option value="0"' + (u.role === 0 ? ' selected' : '') + '>普通用户</option>'
+                    + '<option value="1"' + (u.role === 1 ? ' selected' : '') + '>运维人员</option>'
+                    + '<option value="2"' + (u.role === 2 ? ' selected' : '') + '>管理员</option>'
+                    + '</select> '
+                    + '<button class="small success" onclick="updateRole(' + u.id + ')">保存</button>'
+                ];
+            });
+            return '<div class="card"><h3>账号管理（审核运维资质、分配角色）</h3>'
+                + tableHtml(['ID', '用户名', '手机号', '当前角色', '账户余额', '设置角色'], rows)
+                + '</div>';
+        });
+    }
+
+    function updateRole(id) {
+        var role = parseInt(document.getElementById('role_' + id).value, 10);
+        api('/api/users/' + id + '/role?role=' + role, 'PUT').then(function () {
+            alert('角色已更新');
+            render();
+        }).catch(function () { });
+    }
+
+    /* ---------- 3. 车辆管理 ---------- */
+    function renderBikes() {
+        return api('/api/bikes?pageNum=1&pageSize=100').then(function (page) {
+            var rows = page.records.map(function (b) {
+                var statusText = b.status === 1 ? '<span class="tag ok">可用</span>'
+                    : b.status === 2 ? '<span class="tag">使用中</span>'
+                        : b.status === 3 ? '<span class="tag warn">维修中</span>'
+                            : '<span class="tag gray">故障</span>';
+                return [
+                    b.id, esc(b.bikenumber), statusText, b.battery + '%',
+                    b.longitude, b.latitude, b.stationId || '-',
+                    '<button class="small" onclick="setBikeStatus(' + b.id + ',1)">置可用</button> '
+                    + '<button class="small" onclick="setBikeStatus(' + b.id + ',0)">标故障</button> '
+                    + '<button class="small danger" onclick="deleteBike(' + b.id + ')">删除</button>'
+                ];
+            });
+            var form = '<div class="card"><h3>新增车辆</h3><div class="form-grid">'
+                + '<div><label>车辆编号</label><input id="bikeNo" placeholder="如 BIKE001"></div>'
+                + '<div><label>经度</label><input id="bikeLng" value="110.170000"></div>'
+                + '<div><label>纬度</label><input id="bikeLat" value="25.270000"></div>'
+                + '<div><label>电量(%)</label><input id="bikeBattery" value="100"></div>'
+                + '<div><label>所在站点ID</label><input id="bikeStation" placeholder="可留空"></div>'
+                + '<div><button onclick="createBike()">新增</button></div>'
+                + '</div></div>';
+            return form + '<div class="card"><h3>车辆列表（共 ' + page.total + ' 辆）</h3>'
+                + tableHtml(['ID', '编号', '状态', '电量', '经度', '纬度', '站点', '操作'], rows)
+                + '</div>';
+        });
+    }
+
+    function createBike() {
+        var body = {
+            bikenumber: document.getElementById('bikeNo').value.trim(),
+            longitude: parseFloat(document.getElementById('bikeLng').value),
+            latitude: parseFloat(document.getElementById('bikeLat').value),
+            battery: parseInt(document.getElementById('bikeBattery').value, 10),
+            status: 1
+        };
+        var station = document.getElementById('bikeStation').value.trim();
+        if (station) body.stationId = parseInt(station, 10);
+        if (!body.bikenumber) { alert('请填写车辆编号'); return; }
+        api('/api/bikes', 'POST', body).then(function () { alert('新增成功'); render(); }).catch(function () { });
+    }
+
+    function setBikeStatus(id, status) {
+        api('/api/bikes/' + id + '/status?status=' + status, 'PUT').then(function () { render(); }).catch(function () { });
+    }
+
+    function deleteBike(id) {
+        if (!confirm('确认删除该车辆？')) return;
+        api('/api/bikes/' + id, 'DELETE').then(function () { render(); }).catch(function () { });
+    }
+
+    /* ---------- 4. 站点管理 ---------- */
+    function renderStations() {
+        return api('/api/stations?pageNum=1&pageSize=100').then(function (page) {
+            var rows = page.records.map(function (s) {
+                var rate = s.capacity > 0 ? Math.round(s.currentCount / s.capacity * 100) : 0;
+                var tagClass = rate >= 80 ? 'warn' : (rate <= 20 ? 'gray' : 'ok');
+                return [
+                    s.id, esc(s.name), esc(s.area || '-'), s.currentCount + ' / ' + s.capacity,
+                    '<span class="tag ' + tagClass + '">' + rate + '%</span>',
+                    s.longitude, s.latitude,
+                    '<button class="small danger" onclick="deleteStation(' + s.id + ')">删除</button>'
+                ];
+            });
+            var form = '<div class="card"><h3>新增站点</h3><div class="form-grid">'
+                + '<div><label>站点名称</label><input id="stName" placeholder="如 图书馆站点"></div>'
+                + '<div><label>所属区域</label><input id="stArea" placeholder="如 教学区"></div>'
+                + '<div><label>经度</label><input id="stLng" value="110.170000"></div>'
+                + '<div><label>纬度</label><input id="stLat" value="25.270000"></div>'
+                + '<div><label>容量</label><input id="stCap" value="20"></div>'
+                + '<div><label>当前车辆数</label><input id="stCur" value="0"></div>'
+                + '<div><button onclick="createStation()">新增</button></div>'
+                + '</div></div>';
+            return form + '<div class="card"><h3>站点列表（共 ' + page.total + ' 个）</h3>'
+                + tableHtml(['ID', '名称', '区域', '在站/容量', '负荷率', '经度', '纬度', '操作'], rows)
+                + '</div>';
+        });
+    }
+
+    function createStation() {
+        var body = {
+            name: document.getElementById('stName').value.trim(),
+            area: document.getElementById('stArea').value.trim(),
+            longitude: parseFloat(document.getElementById('stLng').value),
+            latitude: parseFloat(document.getElementById('stLat').value),
+            capacity: parseInt(document.getElementById('stCap').value, 10),
+            currentCount: parseInt(document.getElementById('stCur').value, 10),
+            status: 1
+        };
+        if (!body.name) { alert('请填写站点名称'); return; }
+        api('/api/stations', 'POST', body).then(function () { alert('新增成功'); render(); }).catch(function () { });
+    }
+
+    function deleteStation(id) {
+        if (!confirm('确认删除该站点？')) return;
+        api('/api/stations/' + id, 'DELETE').then(function () { render(); }).catch(function () { });
+    }
+
+    /* ---------- 5. 订单管理 ---------- */
+    function renderOrders() {
+        return api('/api/orders?pageNum=1&pageSize=50').then(function (page) {
+            var rows = page.records.map(function (o) {
+                var statusText = o.status === 0 ? '<span class="tag">骑行中</span>'
+                    : o.status === 1 ? '<span class="tag ok">已完成</span>'
+                        : '<span class="tag gray">已取消</span>';
+                return [
+                    esc(o.orderNo), o.userId, o.bikeId,
+                    o.startStationId + ' → ' + (o.endStationId || '-'),
+                    statusText,
+                    (o.duration || 0) + ' 分钟',
+                    '¥' + (o.amount === null ? '0.00' : o.amount),
+                    esc((o.startTime || '').replace('T', ' ').substring(0, 19))
+                ];
+            });
+            return '<div class="card"><h3>骑行订单（共 ' + page.total + ' 笔）</h3>'
+                + tableHtml(['订单号', '用户ID', '车辆ID', '起点→终点', '状态', '时长', '金额', '开始时间'], rows)
+                + '</div>';
+        });
+    }
+
+    /* ---------- 6. 调度任务 ---------- */
+    function renderDispatch() {
+        return Promise.all([
+            api('/api/dispatch/suggest'),
+            api('/api/dispatch/tasks?pageNum=1&pageSize=50')
+        ]).then(function (result) {
+            var suggestList = result[0] || [];
+            var page = result[1];
+
+            var suggestRows = suggestList.map(function (s) {
+                return [
+                    esc(s.fromStationName), Math.round(s.fromRate * 100) + '%',
+                    esc(s.toStationName), Math.round(s.toRate * 100) + '%',
+                    s.bikeCount + ' 辆',
+                    '<button class="small success" onclick="createDispatch(' + s.fromStationId + ',' + s.toStationId + ',' + s.bikeCount + ')">一键创建</button>'
+                ];
+            });
+
+            var taskRows = page.records.map(function (t) {
+                var statusText = t.status === 0 ? '<span class="tag">待调度</span>'
+                    : t.status === 1 ? '<span class="tag warn">进行中</span>'
+                        : t.status === 2 ? '<span class="tag ok">已完成</span>'
+                            : '<span class="tag gray">已取消</span>';
+                var action = '';
+                if (t.status === 0) {
+                    action = '<button class="small" onclick="dispatchAction(' + t.id + ',\'start\')">开始</button> '
+                        + '<button class="small danger" onclick="dispatchAction(' + t.id + ',\'cancel\')">取消</button>';
+                } else if (t.status === 1) {
+                    action = '<button class="small success" onclick="dispatchAction(' + t.id + ',\'finish\')">完成</button> '
+                        + '<button class="small danger" onclick="dispatchAction(' + t.id + ',\'cancel\')">取消</button>';
+                } else {
+                    action = '-';
+                }
+                return [
+                    '#' + t.id, t.fromStationId + ' → ' + t.toStationId,
+                    t.bikeCount + ' 辆', statusText,
+                    esc(t.remark || '-'), action
+                ];
+            });
+
+            var form = '<div class="card"><h3>手动创建调度任务</h3><div class="form-grid">'
+                + '<div><label>调出站点ID</label><input id="dpFrom" placeholder="如 2"></div>'
+                + '<div><label>调入站点ID</label><input id="dpTo" placeholder="如 3"></div>'
+                + '<div><label>调度数量</label><input id="dpCount" value="5"></div>'
+                + '<div><label>备注</label><input id="dpRemark" placeholder="可选"></div>'
+                + '<div><button onclick="createDispatchManually()">创建任务</button></div>'
+                + '</div></div>';
+
+            return '<div class="card"><h3>智能调度建议</h3>'
+                + (suggestRows.length
+                    ? tableHtml(['调出站点', '负荷率', '调入站点', '负荷率', '建议数量', '操作'], suggestRows)
+                    : '<div class="empty">当前各站点负荷均衡，无需调度</div>')
+                + '</div>'
+                + form
+                + '<div class="card"><h3>调度任务列表（共 ' + page.total + ' 个）</h3>'
+                + tableHtml(['任务', '调出 → 调入', '数量', '状态', '备注', '操作'], taskRows)
+                + '</div>';
+        });
+    }
+
+    function createDispatch(from, to, count) {
+        api('/api/dispatch/tasks', 'POST', {
+            fromStationId: from, toStationId: to, bikeCount: count, remark: '后台采纳调度建议'
+        }).then(function () { alert('调度任务已创建'); render(); }).catch(function () { });
+    }
+
+    function createDispatchManually() {
+        var from = parseInt(document.getElementById('dpFrom').value, 10);
+        var to = parseInt(document.getElementById('dpTo').value, 10);
+        var count = parseInt(document.getElementById('dpCount').value, 10);
+        if (!from || !to || !count) { alert('请填写完整的站点与数量'); return; }
+        if (from === to) { alert('调出与调入站点不能相同'); return; }
+        api('/api/dispatch/tasks', 'POST', {
+            fromStationId: from, toStationId: to, bikeCount: count,
+            remark: document.getElementById('dpRemark').value.trim()
+        }).then(function () { alert('任务创建成功'); render(); }).catch(function () { });
+    }
+
+    function dispatchAction(id, action) {
+        api('/api/dispatch/tasks/' + id + '/' + action, 'PUT').then(function () { render(); }).catch(function () { });
+    }
+
+    /* ---------- 7. 运维工单 ---------- */
+    function renderRepairs() {
+        return api('/api/repairs?pageNum=1&pageSize=50').then(function (page) {
+            var faultNames = { 1: '刹车失灵', 2: '轮胎损坏', 3: '链条故障', 4: '电量不足', 5: '其他' };
+            var rows = page.records.map(function (r) {
+                var statusText = r.status === 0 ? '<span class="tag gray">待处理</span>'
+                    : r.status === 1 ? '<span class="tag warn">处理中</span>'
+                        : r.status === 2 ? '<span class="tag ok">已修复</span>'
+                            : '<span class="tag gray">无法修复</span>';
+                var action = '';
+                if (r.status === 0) {
+                    action = '<button class="small" onclick="repairAssign(' + r.id + ')">受理</button>';
+                } else if (r.status === 1) {
+                    action = '<button class="small success" onclick="repairFinish(' + r.id + ',true)">标记已修复</button> '
+                        + '<button class="small danger" onclick="repairFinish(' + r.id + ',false)">无法修复</button>';
+                } else {
+                    action = '-';
+                }
+                var img = r.images
+                    ? '<a href="' + esc(r.images) + '" target="_blank">查看照片</a>'
+                    : '-';
+                return [
+                    '#' + r.id, r.bikeId, faultNames[r.faultType] || '其他',
+                    esc(r.description || ''), statusText, img,
+                    esc((r.createTime || '').replace('T', ' ').substring(0, 19)),
+                    action
+                ];
+            });
+            return '<div class="card"><h3>报修工单（共 ' + page.total + ' 个）</h3>'
+                + tableHtml(['工单', '车辆ID', '故障类型', '描述', '状态', '照片', '提交时间', '操作'], rows)
+                + '</div>';
+        });
+    }
+
+    function repairAssign(id) {
+        api('/api/repairs/' + id + '/assign', 'PUT').then(function () { render(); }).catch(function () { });
+    }
+
+    function repairFinish(id, fixed) {
+        api('/api/repairs/' + id + '/finish', 'PUT', {
+            fixed: fixed,
+            handleResult: fixed ? '现场检修完成，车辆恢复可用' : '车辆损坏严重，无法修复'
+        }).then(function () { render(); }).catch(function () { });
+    }
+</script>
+</body>
+</html>

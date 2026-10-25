@@ -34,8 +34,10 @@ campus-bike-backend
 │       │           └── dispatch      // 6.调度模块：调度任务、溢缺预警、调度建议
 │       └── resources
 │           ├── application.yml
+│           ├── db                 // 数据库增量变更脚本
 │           ├── mapper             // MyBatis XML 映射文件
 │           └── static
+│               └── admin          // Web 管理后台页面
 ├── pom.xml
 ├── .gitignore
 └── README.md
@@ -122,7 +124,25 @@ CREATE TABLE IF NOT EXISTS dispatch_task (
 );
 ```
 
-### 2. 修改配置
+### 2. 补充字段（已建库则执行增量脚本）
+
+如果数据库已按上一步建好，还需补充后续新增的字段，执行 `src/main/resources/db/alter_tables.sql`：
+
+```sql
+-- 用户虚拟账户余额
+ALTER TABLE sys_user ADD COLUMN balance DECIMAL(10,2) NOT NULL DEFAULT 0.00;
+-- 报修图片与定位
+ALTER TABLE repair_order ADD COLUMN images VARCHAR(500),
+                        ADD COLUMN longitude DECIMAL(10,6),
+                        ADD COLUMN latitude DECIMAL(10,6);
+-- 订单起止位置
+ALTER TABLE ride_order ADD COLUMN start_longitude DECIMAL(10,6),
+                       ADD COLUMN start_latitude DECIMAL(10,6),
+                       ADD COLUMN end_longitude DECIMAL(10,6),
+                       ADD COLUMN end_latitude DECIMAL(10,6);
+```
+
+### 3. 修改配置
 
 `src/main/resources/application.yml`：
 
@@ -140,7 +160,7 @@ spring:
 DB_USERNAME=root DB_PASSWORD=你的密码 mvn spring-boot:run
 ```
 
-### 3. 启动
+### 4. 启动
 
 ```bash
 mvn clean install
@@ -153,14 +173,16 @@ mvn spring-boot:run
 
 ## 接口总览
 
-除 `/auth/**`、`/health`、`/test/**` 外，其余接口需携带 `Authorization: Bearer {token}`。
+除 `/auth/**`、`/health`、`/test/**`、`/uploads/**`、`/admin/**` 外，其余接口需携带 `Authorization: Bearer {token}`。
+
+**角色**：`0` 普通用户（师生）、`1` 运维人员、`2` 管理员。登录接口返回的 `role` 字段即为角色，部分接口按角色鉴权。
 
 ### 1. 用户模块 `/auth`
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | POST | `/auth/register` | 注册（开发阶段验证码固定 `123456`） |
-| POST | `/auth/login` | 登录，返回 JWT |
+| POST | `/auth/login` | 登录，返回 JWT 与角色 |
 
 ### 2. 车辆模块 `/api/bikes`
 
@@ -225,6 +247,36 @@ bike:
 | PUT | `/api/dispatch/tasks/{id}/finish` | 完成调度（同步更新两端站点车辆数） |
 | PUT | `/api/dispatch/tasks/{id}/cancel` | 取消 |
 
+### 7. 用户管理 `/api/users`
+
+| 方法 | 路径 | 说明 | 权限 |
+| --- | --- | --- | --- |
+| GET | `/api/users` | 用户列表分页 | 管理员 |
+| PUT | `/api/users/{id}/role?role=1` | 审核运维资质 / 分配角色 | 管理员 |
+| GET | `/api/users/profile` | 当前登录用户资料（含余额） | 登录 |
+| PUT | `/api/users/profile` | 修改个人资料 | 登录 |
+| PUT | `/api/users/password` | 修改密码 | 登录 |
+
+### 8. 文件上传 `/api/files`
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| POST | `/api/files/upload` | multipart 上传（报修拍照等），返回 `/uploads/{文件名}` |
+
+上传目录与访问前缀在 `application.yml` 配置：
+
+```yaml
+file:
+  upload-path: uploads/
+  access-prefix: /uploads/
+```
+
+### 9. 数据统计 `/api/stats`
+
+| 方法 | 路径 | 说明 | 权限 |
+| --- | --- | --- | --- |
+| GET | `/api/stats/overview` | 车辆周转率、故障率、调度次数、工单办结率等 | 运维 / 管理员 |
+
 ### 调试接口（无需鉴权）
 
 | 方法 | 路径 | 说明 |
@@ -232,6 +284,18 @@ bike:
 | GET | `/health` | 健康检查 |
 | GET | `/test/users` | 全部用户 |
 | GET | `/test/stations` | 全部站点 |
+
+## Web 管理后台
+
+启动后浏览器访问：`http://localhost:8001/admin/index.html`
+
+需使用**管理员账号**（`role = 2`）登录。若账号还不是管理员，先在数据库提升：
+
+```sql
+UPDATE sys_user SET role = 2 WHERE phone = '你的手机号';
+```
+
+后台包含：数据看板、账号管理（审核角色）、车辆管理、站点管理、订单管理、调度任务（可一键采纳调度建议）、运维工单处理。
 
 ## 设计要点
 
@@ -242,3 +306,5 @@ bike:
 - **调度闭环**：任务完成后事务内扣减调出站点车辆、增加调入站点车辆，不超过站点容量
 - **订单闭环**：开锁扣减起始站点车辆并把车置为使用中；还车结算费用、更新车辆归属站点并加回车辆数
 - **报修闭环**：报修即置车辆故障；处理完成且 `fixed=true` 时车辆恢复可用
+- **角色权限**：JWT 携带 `role`，`JwtAuthenticationFilter` 写入 `ROLE_USER` / `ROLE_STAFF` / `ROLE_ADMIN`；统计、用户管理等接口按角色校验
+- **虚拟账户**：还车结算后从 `sys_user.balance` 扣除费用，本地模拟支付，不对接第三方支付接口
