@@ -73,6 +73,43 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserByOpenid(String openid) {
+        if (openid == null || openid.isEmpty()) {
+            return null;
+        }
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getOpenid, openid);
+        return userMapper.selectOne(wrapper);
+    }
+
+    @Override
+    public String loginByOpenid(String openid) {
+        User user = getUserByOpenid(openid);
+        if (user == null || Integer.valueOf(0).equals(user.getStatus())) {
+            return null;
+        }
+        Integer role = user.getRole() == null ? Constants.ROLE_USER : user.getRole();
+        return jwtUtil.generateToken(user.getId(), user.getPhone(), role);
+    }
+
+    @Override
+    public void bindOpenid(String openid, String phone) {
+        User user = getUserByPhone(phone);
+        if (user == null) {
+            throw new BizException("用户不存在");
+        }
+        User exist = getUserByOpenid(openid);
+        if (exist != null && !exist.getId().equals(user.getId())) {
+            throw new BizException("该微信已绑定其他账号");
+        }
+        User update = new User();
+        update.setId(user.getId());
+        update.setOpenid(openid);
+        update.setUpdateTime(new Date());
+        userMapper.updateById(update);
+    }
+
+    @Override
     public IPage<User> page(long pageNum, long pageSize) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByDesc(User::getId);

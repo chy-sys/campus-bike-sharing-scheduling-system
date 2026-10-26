@@ -1,0 +1,29 @@
+<view class="container">
+  <view class="card">
+    <view class="card-title">运维登录</view>
+
+    <!-- 方式一：微信授权登录 -->
+    <block wx:if="{{!needBind}}">
+      <button class="btn btn-primary" bindtap="wechatLogin">微信一键登录</button>
+
+      <view class="divider">
+        <text class="muted">或使用账号密码</text>
+      </view>
+
+      <input class="input" placeholder="手机号" value="{{phone}}" bindinput="onPhone" />
+      <input class="input" password placeholder="密码" value="{{password}}" bindinput="onPassword" />
+      <button class="btn btn-primary" bindtap="passwordLogin">登录</button>
+    </block>
+
+    <!-- 微信首次登录：绑定已有账号 -->
+    <block wx:else>
+      <view class="muted bind-tip">该微信尚未绑定账号，请输入手机号与密码完成绑定，之后即可一键登录。</view>
+      <input class="input" placeholder="手机号" value="{{phone}}" bindinput="onPhone" />
+      <input class="input" password placeholder="密码" value="{{password}}" bindinput="onPassword" />
+      <button class="btn btn-success" bindtap="bindWechat">绑定并登录</button>
+      <button class="btn btn-plain" bindtap="cancelBind">返回</button>
+    </block>
+
+    <view class="tip muted">运维账号需由管理员在后台审核授权后登录</view>
+  </view>
+</view>

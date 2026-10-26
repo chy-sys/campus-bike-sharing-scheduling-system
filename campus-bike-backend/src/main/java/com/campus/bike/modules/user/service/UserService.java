@@ -29,6 +29,22 @@ public interface UserService {
     User getUserByPhone(String phone);
 
     /**
+     * 根据微信 openid 查询用户（运维小程序免密登录）
+     */
+    User getUserByOpenid(String openid);
+
+    /**
+     * 微信免密登录：openid 已绑定账号时直接签发 token
+     * @return token，未绑定或账号禁用返回 null
+     */
+    String loginByOpenid(String openid);
+
+    /**
+     * 将微信 openid 绑定到已有账号
+     */
+    void bindOpenid(String openid, String phone);
+
+    /**
      * 用户列表（管理员）
      */
     IPage<User> page(long pageNum, long pageSize);

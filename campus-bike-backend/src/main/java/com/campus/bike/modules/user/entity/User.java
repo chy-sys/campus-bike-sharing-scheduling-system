@@ -25,4 +25,6 @@ public class User {
     private Integer role;
     /** 虚拟账户余额（元），骑行结束后自动扣费 */
     private BigDecimal balance;
+    /** 微信 openid：运维小程序授权登录后绑定，用于免密登录 */
+    private String openid;
 }

@@ -1,0 +1,15 @@
+.divider {
+  text-align: center;
+  margin: 30rpx 0 20rpx;
+}
+
+.bind-tip {
+  margin-bottom: 20rpx;
+  line-height: 1.6;
+}
+
+.tip {
+  margin-top: 30rpx;
+  text-align: center;
+  line-height: 1.6;
+}

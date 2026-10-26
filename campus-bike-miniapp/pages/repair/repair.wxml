@@ -1,0 +1,25 @@
+<view class="container">
+
+  <view class="card">
+    <view class="card-title">报修工单（共 {{repairs.length}} 个）</view>
+
+    <block wx:if="{{repairs.length > 0}}">
+      <view class="row" wx:for="{{repairs}}" wx:key="id">
+        <view>
+          <view>#{{item.id}} 车辆{{item.bikeId}} · {{item.faultName}}</view>
+          <view class="muted">{{item.description || '无描述'}}</view>
+          <view class="muted" wx:if="{{item.images}}">
+            <text class="tag tag-gray" data-url="{{item.images}}" bindtap="previewImage">查看现场照片</text>
+          </view>
+        </view>
+        <view>
+          <text class="tag {{item.statusClass}}">{{item.statusText}}</text>
+          <text wx:if="{{item.status === 0}}" class="btn btn-small btn-primary" data-id="{{item.id}}" bindtap="assign">受理</text>
+          <text wx:elif="{{item.status === 1}}" class="btn btn-small btn-success" data-id="{{item.id}}" bindtap="finish">处理</text>
+        </view>
+      </view>
+    </block>
+    <view wx:else class="empty">暂无工单</view>
+  </view>
+
+</view>

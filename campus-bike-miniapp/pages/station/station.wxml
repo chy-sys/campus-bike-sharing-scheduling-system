@@ -1,0 +1,17 @@
+<view class="container">
+
+  <view class="card">
+    <view class="card-title">站点实时监控（共 {{stations.length}} 个）</view>
+    <block wx:if="{{stations.length > 0}}">
+      <view class="row" wx:for="{{stations}}" wx:key="id">
+        <view>
+          <view>{{item.name}}</view>
+          <view class="muted">{{item.area || '未分区'}} · 在站 {{item.currentCount}} / 容量 {{item.capacity}}</view>
+        </view>
+        <text class="tag {{item.rateClass}}">{{item.rateText}}</text>
+      </view>
+    </block>
+    <view wx:else class="empty">暂无站点数据</view>
+  </view>
+
+</view>

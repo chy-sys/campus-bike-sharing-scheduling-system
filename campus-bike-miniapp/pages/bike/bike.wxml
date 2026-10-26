@@ -1,0 +1,19 @@
+<view class="container">
+
+  <view class="card">
+    <view class="card-title">车辆运维（共 {{bikes.length}} 辆）</view>
+    <view class="muted filter-tip">点击车辆可变更状态</view>
+
+    <block wx:if="{{bikes.length > 0}}">
+      <view class="row" wx:for="{{bikes}}" wx:key="id" data-id="{{item.id}}" data-number="{{item.bikenumber}}" bindtap="changeStatus">
+        <view>
+          <view>{{item.bikenumber}}</view>
+          <view class="muted">电量 {{item.battery}}% · 站点 {{item.stationId || '未绑定'}}</view>
+        </view>
+        <text class="tag {{item.statusClass}}">{{item.statusText}}</text>
+      </view>
+    </block>
+    <view wx:else class="empty">暂无车辆数据</view>
+  </view>
+
+</view>

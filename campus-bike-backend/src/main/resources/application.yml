@@ -53,3 +53,8 @@ file:
 amap:
   key: ${AMAP_KEY:}
   web-service-key: ${AMAP_WEB_KEY:}
+
+# 微信小程序（运维小程序登录用；未配置 appid/secret 时微信登录不可用，可用手机号密码登录）
+wx:
+  appid: ${WX_APPID:}
+  secret: ${WX_SECRET:}

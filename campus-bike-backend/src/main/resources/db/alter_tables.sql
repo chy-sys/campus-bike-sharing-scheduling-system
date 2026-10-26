@@ -18,3 +18,9 @@ ALTER TABLE ride_order
     ADD COLUMN start_latitude DECIMAL(10, 6) COMMENT '起点纬度' AFTER start_longitude,
     ADD COLUMN end_longitude DECIMAL(10, 6) COMMENT '终点经度' AFTER end_station_id,
     ADD COLUMN end_latitude DECIMAL(10, 6) COMMENT '终点纬度' AFTER end_longitude;
+
+-- 4. 微信 openid：运维小程序授权登录后绑定，用于免密登录
+ALTER TABLE sys_user
+    ADD COLUMN openid VARCHAR(64) COMMENT '微信openid' AFTER balance;
+
+CREATE UNIQUE INDEX uk_sys_user_openid ON sys_user (openid);

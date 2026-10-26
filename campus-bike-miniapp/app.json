@@ -1,0 +1,48 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/dispatch/dispatch",
+    "pages/station/station",
+    "pages/bike/bike",
+    "pages/repair/repair",
+    "pages/login/login"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#409eff",
+    "navigationBarTitleText": "校园单车运维",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f7fa"
+  },
+  "tabBar": {
+    "color": "#909399",
+    "selectedColor": "#409eff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "工作台"
+      },
+      {
+        "pagePath": "pages/dispatch/dispatch",
+        "text": "调度"
+      },
+      {
+        "pagePath": "pages/station/station",
+        "text": "站点"
+      },
+      {
+        "pagePath": "pages/bike/bike",
+        "text": "车辆"
+      },
+      {
+        "pagePath": "pages/repair/repair",
+        "text": "工单"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

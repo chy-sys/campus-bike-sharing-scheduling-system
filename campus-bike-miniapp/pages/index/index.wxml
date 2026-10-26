@@ -1,0 +1,60 @@
+<view class="container">
+
+  <view class="card" wx:if="{{userInfo}}">
+    <view class="row">
+      <text>{{userInfo.userName}}</text>
+      <text class="muted">{{roleName}} · {{userInfo.phone}}</text>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{stats}}">
+    <view class="card-title">运营概览</view>
+    <view class="stats">
+      <view class="stat">
+        <view class="stat-label">车辆总数</view>
+        <view class="stat-value">{{stats.bikeTotal}}</view>
+      </view>
+      <view class="stat">
+        <view class="stat-label">可用车辆</view>
+        <view class="stat-value">{{stats.bikeAvailable}}</view>
+      </view>
+      <view class="stat">
+        <view class="stat-label">故障车辆</view>
+        <view class="stat-value">{{stats.bikeFault}}</view>
+      </view>
+      <view class="stat">
+        <view class="stat-label">车辆周转率</view>
+        <view class="stat-value">{{stats.bikeTurnoverRate}}</view>
+      </view>
+      <view class="stat">
+        <view class="stat-label">车辆故障率</view>
+        <view class="stat-value">{{faultRateText}}</view>
+      </view>
+      <view class="stat">
+        <view class="stat-label">工单办结率</view>
+        <view class="stat-value">{{repairFinishRateText}}</view>
+      </view>
+      <view class="stat">
+        <view class="stat-label">订单总数</view>
+        <view class="stat-value">{{stats.orderTotal}}</view>
+      </view>
+      <view class="stat">
+        <view class="stat-label">今日订单</view>
+        <view class="stat-value">{{stats.orderToday}}</view>
+      </view>
+      <view class="stat">
+        <view class="stat-label">调度任务</view>
+        <view class="stat-value">{{stats.dispatchTotal}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{!stats}}">
+    <view class="empty">暂无统计数据</view>
+  </view>
+
+  <view class="card">
+    <button class="btn btn-plain" bindtap="logout">退出登录</button>
+  </view>
+
+</view>

@@ -1,0 +1,46 @@
+<view class="container">
+
+  <view class="card">
+    <view class="card-title">智能调度建议</view>
+    <block wx:if="{{suggest.length > 0}}">
+      <view class="row" wx:for="{{suggest}}" wx:key="index">
+        <view>
+          <view>{{item.fromStationName}} → {{item.toStationName}}</view>
+          <view class="muted">负荷 {{item.fromRateText}} → {{item.toRateText}}，建议调 {{item.bikeCount}} 辆</view>
+        </view>
+        <text class="btn btn-small btn-primary" data-index="{{index}}" bindtap="useSuggest">采用</text>
+      </view>
+    </block>
+    <view wx:else class="empty">当前各站点负荷均衡，无需调度</view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">创建调度任务</view>
+    <input class="input" placeholder="调出站点ID" value="{{fromId}}" bindinput="onFromId" />
+    <input class="input" placeholder="调入站点ID" value="{{toId}}" bindinput="onToId" />
+    <input class="input" placeholder="调度数量" value="{{count}}" bindinput="onCount" />
+    <button class="btn btn-primary" bindtap="createTask">创建任务</button>
+  </view>
+
+  <view class="card">
+    <view class="card-title">调度任务列表</view>
+    <block wx:if="{{tasks.length > 0}}">
+      <view class="row" wx:for="{{tasks}}" wx:key="id">
+        <view>
+          <view>#{{item.id}} {{item.fromStationId}} → {{item.toStationId}} · {{item.bikeCount}} 辆</view>
+          <view class="muted">{{item.statusText}}{{item.remark ? ' · ' + item.remark : ''}}</view>
+        </view>
+        <view wx:if="{{item.status === 0}}">
+          <text class="btn btn-small btn-primary" data-id="{{item.id}}" bindtap="startTask">开始</text>
+          <text class="btn btn-small btn-danger" data-id="{{item.id}}" bindtap="cancelTask">取消</text>
+        </view>
+        <view wx:elif="{{item.status === 1}}">
+          <text class="btn btn-small btn-success" data-id="{{item.id}}" bindtap="finishTask">完成</text>
+          <text class="btn btn-small btn-danger" data-id="{{item.id}}" bindtap="cancelTask">取消</text>
+        </view>
+      </view>
+    </block>
+    <view wx:else class="empty">暂无调度任务</view>
+  </view>
+
+</view>
